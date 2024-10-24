@@ -1,9 +1,18 @@
 package com.quicktalk.bean;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+@ApiModel(description = "Request model for user registration")
 public class RegisterUserRequestBean {
 
+	@ApiModelProperty(value = "Indicates name of the user", required=true, example="johnDoe")
     private String username;
-    private String email;
+    
+	@ApiModelProperty(value = "Indicates email ID of the user", required=true, example="john@abc.com")
+	private String email;
+	
+	@ApiModelProperty(value = "Indicates user password", required=true, example="qwerty123")
     private String password;
     
 	public String getUsername() {
