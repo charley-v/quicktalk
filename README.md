@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+# QuickTalk
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a real-time chat application built using WebSocket technology. The application allows users to chat in private and group rooms, with persistent messages stored in a MySQL database. The frontend is built with React, while the backend is developed using Spring Boot.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Real-Time Communication**: Supports private and group chat using WebSockets.
+- **User Authentication**: Secure login and user management.
+- **Persistent Messaging**: Messages are saved in the MySQL database for future reference.
+- **Interactive Frontend**: Responsive UI built with React.
+- **API Documentation**: Comprehensive API documentation available via Swagger UI.
 
-### `npm start`
+## Technology Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend**: React
+- **Backend**: Spring Boot
+- **Database**: MySQL
+- **WebSockets**: For real-time chat functionality
+- **Swagger**: For API documentation
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Node.js**: For running the React frontend.
+- **Java 8 or above**: For running the Spring Boot backend.
+- **MySQL 8 or above**: For the database.
+- **Maven 3.9 or above**: For managing Java dependencies.
 
-### `npm run build`
+### Setup
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Clone the repository**:
+    ```bash
+    git https://github.com/charley-v/quicktalk.git
+    cd quicktalk
+    ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. **Setup the MySQL Database**:
+    - Navigate to the database directory:
+      ```bash
+      cd database
+    - Run the schema provided in `schema.sql` to set up the database and tables
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. **Configure the Backend**:
+    - Navigate to the backend directory:
+      ```bash
+      cd backend
+      ```
+    - Create an `application.properties` file with your MySQL credentials in `src/main/resources/application.properties`:
+      ```properties
+      spring.datasource.url=jdbc:mysql://localhost:3306/quicktalkdb
+      spring.datasource.username=your-username
+      spring.datasource.password=your-password
+      ```
 
-### `npm run eject`
+4. **Run the Spring Boot Backend**:
+    ```bash
+    mvn clean install
+    mvn spring-boot:run
+    ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+5. **Start the React Frontend**:
+    - Navigate to the frontend directory:
+      ```bash
+      cd ../frontend
+      ```
+    - Install dependencies and start the React app:
+      ```bash
+      npm install
+      npm start
+      ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Database Schema
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The database schema is available in `database/schema.sql`. Below is the relational schema diagram:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+![Schema Diagram](img/schema_diagram.png)
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## API Documentation
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The backend APIs are documented using Swagger. You can access the Swagger UI by running the backend application and navigating to:
 
-### Code Splitting
+```bash
+http://localhost:8080/swagger-ui.html
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+A screenshot of the Swagger UI is shown below:
 
-### Analyzing the Bundle Size
+![Swagger UI](img/swagger_ui.png)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Alternatively, you can view the [Swagger Documentation (PDF)](img/QuickTalk_API_Documentation.pdf) directly which provides a comprehensive overview of all backend API endpoints, including details on request and response formats, HTTP methods, parameters, and example payloads. It serves as a complete reference for developers to understand how to interact with the WebSocket-based chat application's backend.

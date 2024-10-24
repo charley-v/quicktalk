@@ -2,9 +2,14 @@ package com.quicktalk.bean;
 
 import javax.xml.bind.annotation.XmlElement;
 
+import io.swagger.annotations.ApiModelProperty;
+
 public class RoomResponseBean {
 
+	@ApiModelProperty(value = "Indicates room ID. Can be null if request fails", example="1")
 	private String roomId;
+	
+	@ApiModelProperty(value = "Indicates message regarding chat room request.", example="Successfully added userIds [4, 5] to groupRoomId 1")
 	private String message;
 
 	public String getRoomId() {
