@@ -1,92 +1,112 @@
-import React, { useEffect, useRef } from 'react'
-import {useState} from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import ChatBoxReciever, { ChatBoxSender } from './ChatBox';
+import InputText from './InputText'
 import './Chat.css'
-import avatar from '../../Assets/avatar.png'
-import video from '../../Assets/video.png'
-import more from '../../Assets/more.png'
-import mic from '../../Assets/mic.png'
-import camera from '../../Assets/camera.png'
-import img from '../../Assets/img.png'
+import pic from '../../Assets/avatar.png'
+import {useUser} from '../../Context/UserContext'
+import List from '../../Components/List/List'
+import SockJS from 'sockjs-client'
+import {Stomp} from '@stomp/stompjs'
+
 
 export const Chat = () => {
-  const[Text, setText] = useState("");
+  const {user} = useUser();
+  const [chats, setChats] = useState([])
+  const [avatar, setAvatar] = useState(localStorage.getItem("avatar"))
+  const endRef = useRef(null)
+  const stompClientRef = useRef(null);
 
-  const endRef = useRef(null);
+  const scrollToBottom = () =>
+  {
+    endRef.current?.scrollIntoView({behavior: "smooth"})
+  }
+  
+  useEffect(() => {
+    console.log("User", user)
+    if (!user) {
+        console.log("User is not logged in"); // Log if user is not logged in
+    } else {
+        console.log(`Logged in as: ${user.username}`); // Log the logged-in user
+    }
+}, [user]);
+  
+  useEffect(() => {
+    const socket = new SockJS("http:localhost:8080/chat-websocket")
+    stompClientRef.current = Stomp.over(socket)
 
-  useEffect(()=>{
-    endRef.current?.scrollIntoView({behavior:"smooth"})
+    stompClientRef.current.connect({}, () => {
+      console.log("connected to websocket")
+      stompClientRef.current.subscribe('/topic/messages', (message) => {
+        const messageBody = JSON.parse(message.body)
+        console.log("Received message:", messageBody)
+        setChats((prevChats) => [...prevChats, messageBody])
+      })
+    })
+    return () => {
+        if (stompClientRef.current) {
+            stompClientRef.current.disconnect()
+        }
+    };
+}, []);
 
-  },[])
+  useEffect(() => {
+    scrollToBottom();
+  }, [chats]);
 
+  const sendChatToSocket = (chat) => {
+    if (stompClientRef.current && stompClientRef.current.connected) {
+      stompClientRef.current.send("/app/chat", {}, JSON.stringify(chat));
+    } else {
+      console.log("WebSocket is not connected");
+    }
+  };
+
+
+  const addMessage = (chat) =>{
+    const newChat = {...chat, user: user?.user_name || "guest", avatar}
+    sendChatToSocket(newChat)
+  }
+  function ChatsList(){
+    console.log("current chats: ", chats)
+    return chats.map((chat, index)=>{
+      console.log(`Chat user: ${chat.username}, Logged-in user: ${user.username}`);
+      if(chat.user === user.username)
+      {
+        return <ChatBoxSender key={index} message={chat.message} avatar={pic}/>
+  
+      }
+      else{
+        return <ChatBoxReciever key={index} message={chat.message} avatar={pic}/>
+      }
+        
+    })
+}
 
   return (
-    <div className='chat'>
+    <div className='container'>
+      <div className="layout">
+        <List/>
+      <div className='chat'>
       <div className='top'>
         <div className='user'>
-          <img src={avatar} alt=''/>
+          <img src={pic} alt=''/>
           <div className='texts'>
-            <span>User #1</span>
-            <p>Status..</p>
+            <span>{chats.user}</span>
+            <p>Online</p>
           </div>
-        </div>
-        <div className='icons'>
-          <img src={video} alt=''/>
-          <img src={more} alt=''/>
         </div>
       </div>
       <div className='center'>
-        <div className="message">
-          <img src={avatar} alt=''/>
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="ownmessage">
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message">
-          <img src={avatar} alt=''/>
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="ownmessage">
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="message">
-          <img src={avatar} alt=''/>
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
-        <div className="ownmessage">
-          <div className="text">
-            <p>Random Text</p>
-            <span>1 min ago</span>
-          </div>
-        </div>
+          <ChatsList/>
         <div ref={endRef}></div>
       </div>
-      <div className='bottom'>
-      <div className='icons'>
-        <img src={img} alt=''/>
-        <img src={camera} alt=''/>
-        <img src={mic} alt=''/>
+      <div className='input'>
+        <InputText addMessage={addMessage}/>
+        </div>
       </div>
-      <input type='text' placeholder='Type a message...' onChange={(e)=>setText(e.target.value)}/>
-      <button className='sendButton'> Send</button>
       </div>
     </div>
   )
 }
 
-export default Chat
+export default Chat;

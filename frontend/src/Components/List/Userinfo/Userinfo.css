@@ -1,31 +1,46 @@
-.userinfo{
-    padding: 20px;
+/* User info container */
+.userinfo {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #444;
     color: white;
-    background-color: #0000007b;
-}
-.user{
+    height: 60px;
+    .logout{
+      margin-top: 10px;
+      padding: 10px 20px;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+  }
+  }
+  
+  /* User info styling */
+  .userinfo .user {
     display: flex;
     align-items: center;
-    gap: 20px;
-    
-    img{
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-}
-
-.icons{
-    display: flex;
-    gap: 20px;
-    
-    img{
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-    }
-}
+  }
+  
+  .userinfo .user img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+  }
+  
+  .userinfo h2 {
+    margin: 0;
+    font-size: 18px;
+    color: white;
+  }
+  
+  /* Icons next to user */
+  .userinfo .icons img {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+  

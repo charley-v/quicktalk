@@ -1,21 +1,20 @@
 import './Userinfo.css'
 import React from 'react'
 import avatar from '../../../Assets/avatar.png'
-import more from '../../../Assets/more.png'
-import video from '../../../Assets/video.png'
-import edit from '../../../Assets/edit.png'
+import {useUser} from '../../../Context/UserContext'
 
 export const Userinfo = () => {
+  const {user, logout} = useUser();
   return (
     <div className='userinfo'>
         <div className='user'>
             <img src={avatar} alt=''/>
-            <h2>John Doe</h2>
+            <h2>{user.username}</h2>
         </div>
         <div className='icons'>
-            <img src={more} alt=''/>
-            <img src={video} alt=''/>
-            <img src={edit} alt=''/>
+        <button onClick={logout} className='logout'>
+            Logout
+        </button>
         </div>
     </div>
   )

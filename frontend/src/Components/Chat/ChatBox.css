@@ -1,0 +1,52 @@
+.box {
+    margin: 10px 0;
+    display: flex;
+    width: 100%; /* Ensures the box spans the container */
+  }
+  
+  /* Align sender and receiver messages properly */
+  .sender {
+    display: flex;
+    justify-content: flex-end; /* Aligns messages to the right */
+    width: 100%; /* Ensures message aligns to the right */
+  }
+  
+  .receiver {
+    display: flex;
+    justify-content: flex-start; /* Aligns messages to the left */
+    width: 100%; /* Ensures message aligns to the left */
+  }
+  
+  /* Styling for message container */
+  .message {
+    display: flex;
+    align-items: center; /* Vertically centers avatar and text */
+    max-width: 300px; /* Limits message width */
+    word-wrap: break-word; /* Allows long words to break */
+  }
+  
+  /* Avatar styling */
+  .message img {
+    width: 35px; /* Size of the avatar */
+    height: 35px; /* Size of the avatar */
+    border-radius: 50%; /* Circular avatar */
+    margin-right: 10px; /* Space between avatar and text */
+  }
+  
+  /* Background and text colors for receiver messages */
+  .receiver .texts {
+    background-color: #ececec; /* Light background for received messages */
+    color: #333; /* Dark text for contrast */
+    padding: 10px; /* Padding around the text */
+    border-radius: 10px; /* Rounded corners */
+  }
+  
+  /* Background and text colors for sender messages */
+  .sender .texts {
+    background-color: #6200ea; /* Dark background for sent messages */
+    color: white; /* Light text for contrast */
+    padding: 10px; /* Padding around the text */
+    border-radius: 10px; /* Rounded corners */
+    text-align: right; /* Right-align text for sent messages */
+  }
+  

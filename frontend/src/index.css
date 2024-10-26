@@ -11,11 +11,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-body{
-  background-color: rgb(34,34,34);
+html, body, #root{
+  /*background-color: rgb(34,34,34);*/
+  background-color: #333;
   align-items: center;
   justify-content: center;
-  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 .container{
   display: flex;

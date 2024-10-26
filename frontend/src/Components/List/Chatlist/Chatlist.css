@@ -33,13 +33,4 @@
     }
     }
     }
-    .logout{
-        margin-top: 300px;
-        margin-left: 180px;
-        padding: 10px 20px;
-        color: black;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
 }

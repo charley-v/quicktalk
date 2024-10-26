@@ -1,0 +1,38 @@
+/* Bottom input section */
+.bottom {
+    display: flex;
+    align-items: center;
+    padding: 30px;
+    background-color: #333;
+    
+    width: 100%;
+    margin-bottom: -5px;
+  }
+  
+  /* Icons next to input */
+  .bottom .icons img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  
+  /* Input box */
+  .bottom input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+  }
+  
+  /* Send button */
+  .sendButton {
+    background-color: #6200ea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
