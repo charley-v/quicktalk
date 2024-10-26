@@ -2,18 +2,23 @@ package com.quicktalk.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+
 import org.springframework.stereotype.Service;
 
+import com.quicktalk.bean.LoginRequestBean;
 import com.quicktalk.bean.MessageResponseBean;
 import com.quicktalk.bean.RegisterUserRequestBean;
 import com.quicktalk.entity.Users;
 import com.quicktalk.projection.UserProjection;
 import com.quicktalk.repository.UserRepository;
 import com.quicktalk.utilities.Utility;
+
 
 @Service("UserServiceImpl")
 public class UserServiceImpl implements UserService{
@@ -77,5 +82,30 @@ public class UserServiceImpl implements UserService{
 		USER_SERVICE_LOG.info("UserServiceImpl :: exit validateRegisterUserReq() :: error {}",error);
 		return error;
 	}
-
+	@Override
+    public MessageResponseBean loginUser(LoginRequestBean loginRequest) {
+        // Implementation for user login
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
+		
+        Optional<Users> userOpt = userRepo.findByEmail(email); // Changed to userRepo
+    
+        // Check if the user exists
+        if (userOpt.isPresent()) {
+			USER_SERVICE_LOG.info("User found for email: {}", loginRequest.getEmail());
+            Users user = userOpt.get();
+            
+            // Verify the password
+            if (password.equals(user.getPassword())){
+				USER_SERVICE_LOG.info("Password matched for user: {}", user.getEmail());
+                return new MessageResponseBean("S", "Successfully logged in");
+            } else {
+				USER_SERVICE_LOG.warn("Password mismatch for user: {}", user.getEmail());
+                return new MessageResponseBean("F", "Invalid credentials"); // Invalid password
+            }
+        } else {
+			USER_SERVICE_LOG.warn("User with email {} not found", loginRequest.getEmail());
+            return new MessageResponseBean("F", "Invalid credentials"); // User not found
+        }
+    }
 }

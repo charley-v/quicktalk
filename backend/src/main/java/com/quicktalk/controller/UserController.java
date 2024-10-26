@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import com.quicktalk.bean.MessageResponseBean;
 import com.quicktalk.bean.RegisterUserRequestBean;
 import com.quicktalk.projection.UserProjection;
 import com.quicktalk.service.UserService;
+import com.quicktalk.bean.LoginRequestBean;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -24,6 +26,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 @Api(value = "User Management", tags = {"Users"})
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class UserController {
 
@@ -74,5 +77,18 @@ public class UserController {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(registerUserResp);
 		}
 	}
+	//@ApiOperation(value = "Logs in a user")
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<MessageResponseBean> loginUser(@RequestBody LoginRequestBean loginRequest) {
+        USER_CONTROLLER_LOG.info("UserController :: in loginUser()");
+        MessageResponseBean loginUserResp = userService.loginUser(loginRequest);
+        if (loginUserResp.getMessage().startsWith("S")) {
+            return ResponseEntity.status(HttpStatus.OK).body(loginUserResp);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginUserResp);
+        }
+
+    }
+}	
 	
-}
+

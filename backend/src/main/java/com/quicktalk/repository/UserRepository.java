@@ -1,4 +1,6 @@
 package com.quicktalk.repository;
+import java.util.Optional;
+
 
 import java.util.List;
 
@@ -12,4 +14,5 @@ import com.quicktalk.projection.UserProjection;
 public interface UserRepository extends JpaRepository<Users, Integer> {
 
 	List<UserProjection> findAllProjectedBy();
+	Optional<Users> findByEmail(String email);
 }
