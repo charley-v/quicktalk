@@ -12,5 +12,4 @@ public interface UserService {
 	List<UserProjection> getAllUsers();
 	MessageResponseBean registerUser(RegisterUserRequestBean registerUserRequest);
 	MessageResponseBean loginUser(LoginRequestBean loginRequest);
-	
 }

@@ -20,6 +20,7 @@ import com.quicktalk.projection.UserProjection;
 import com.quicktalk.service.UserService;
 import com.quicktalk.bean.LoginRequestBean;
 
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -78,17 +79,16 @@ public class UserController {
 		}
 	}
 	//@ApiOperation(value = "Logs in a user")
-    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MessageResponseBean> loginUser(@RequestBody LoginRequestBean loginRequest) {
-        USER_CONTROLLER_LOG.info("UserController :: in loginUser()");
-        MessageResponseBean loginUserResp = userService.loginUser(loginRequest);
-        if (loginUserResp.getMessage().startsWith("S")) {
-            return ResponseEntity.status(HttpStatus.OK).body(loginUserResp);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginUserResp);
-        }
-
-    }
-}	
-	
+	@PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<MessageResponseBean> loginUser(@RequestBody LoginRequestBean loginRequest) {
+		USER_CONTROLLER_LOG.info("UserController :: in loginUser()");
+		// Call the service method which should return a MessageResponseBean
+		MessageResponseBean loginUserResp = userService.loginUser(loginRequest); 
+		if (loginUserResp.getMessage().startsWith("S")) {
+			return ResponseEntity.status(HttpStatus.OK).body(loginUserResp); // Return successful response
+		} else {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginUserResp); // Return unauthorized response
+		}
+	}
+}
 

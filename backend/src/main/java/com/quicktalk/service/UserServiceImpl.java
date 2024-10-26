@@ -84,28 +84,22 @@ public class UserServiceImpl implements UserService{
 	}
 	@Override
     public MessageResponseBean loginUser(LoginRequestBean loginRequest) {
-        // Implementation for user login
-        String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
-		
-        Optional<Users> userOpt = userRepo.findByEmail(email); // Changed to userRepo
-    
-        // Check if the user exists
-        if (userOpt.isPresent()) {
-			USER_SERVICE_LOG.info("User found for email: {}", loginRequest.getEmail());
-            Users user = userOpt.get();
-            
-            // Verify the password
-            if (password.equals(user.getPassword())){
-				USER_SERVICE_LOG.info("Password matched for user: {}", user.getEmail());
-                return new MessageResponseBean("S", "Successfully logged in");
-            } else {
-				USER_SERVICE_LOG.warn("Password mismatch for user: {}", user.getEmail());
-                return new MessageResponseBean("F", "Invalid credentials"); // Invalid password
-            }
-        } else {
-			USER_SERVICE_LOG.warn("User with email {} not found", loginRequest.getEmail());
-            return new MessageResponseBean("F", "Invalid credentials"); // User not found
-        }
-    }
+		String email = loginRequest.getEmail();
+		String password = loginRequest.getPassword();
+	
+		Optional<Users> userOpt = userRepo.findByEmail(email);
+	
+		if (userOpt.isPresent()) {
+			Users user = userOpt.get();
+			
+			// Check the password
+			if (password.equals(user.getPassword())) {
+				return new MessageResponseBean(user.getUserId().toString(), "Successfully logged in", user.getUsername()); // Include username
+			} else {
+				return new MessageResponseBean(null, "Invalid credentials", null); // Invalid password
+			}
+		} else {
+			return new MessageResponseBean(null, "Invalid credentials", null); // User not found
+		}
+	}
 }
