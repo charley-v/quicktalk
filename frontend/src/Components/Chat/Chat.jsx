@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {ChatBoxReciever,  ChatBoxSender } from './ChatBox';
+import { useParams } from 'react-router-dom';
+import { ChatBoxReciever, ChatBoxSender } from './ChatBox';
 import InputText from './InputText';
 import './Chat.css';
 import pic from '../../Assets/avatar.png';
@@ -9,12 +10,13 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 
 export const Chat = () => {
+    const roomId  = 1; // Get roomId from the route
     const { user } = useUser();
     const [chats, setChats] = useState([]);
     const [avatar] = useState(localStorage.getItem('avatar'));
     const endRef = useRef(null);
     const stompClientRef = useRef(null);
-    const [chatter, setChatter] = useState(null); 
+    const [chatter, setChatter] = useState(null);
 
     // Scroll to the bottom of the chat
     const scrollToBottom = () => {
@@ -32,40 +34,39 @@ export const Chat = () => {
 
     // Setup WebSocket connection
     useEffect(() => {
-      const socket = new SockJS('http://localhost:8080/chat-websocket');
-      stompClientRef.current = Stomp.over(socket);
-  
-      stompClientRef.current.connect({}, () => {
-          console.log('Connected to WebSocket');
-  
-          const subscription = stompClientRef.current.subscribe('/topic/messages', (message) => {
-              const messageBody = JSON.parse(message.body);
-              console.log('Received WebSocket message:', messageBody);
-  
-              // Check if username and message are correctly received
-              if (!messageBody.username || !messageBody.message) {
-                  console.error('Invalid message format:', messageBody);
-              }
-              if (messageBody.username !== user.username) {
-                setChatter(messageBody.username);
-            }
-  
-              setChats((prevChats) => {
-                  if (!prevChats.some((chat) => chat.message === messageBody.message && chat.username === messageBody.username)) {
-                      return [...prevChats, messageBody];
-                  }
-                  return prevChats; // Avoid duplicate messages
-              });
-          });
-  
-          return () => {
-              subscription.unsubscribe();
-              stompClientRef.current.disconnect();
-              console.log('Disconnected from WebSocket');
-          };
-      });
-  }, []);
-  
+        const socket = new SockJS('http://localhost:8080/chat-websocket');
+        stompClientRef.current = Stomp.over(socket);
+
+        stompClientRef.current.connect({}, () => {
+            console.log('Connected to WebSocket');
+
+            const subscription = stompClientRef.current.subscribe(`/topic/room/${roomId}`, (message) => {
+                const messageBody = JSON.parse(message.body);
+                console.log('Received WebSocket message:', messageBody);
+
+                // Check if username and message are correctly received
+                if (!messageBody.username || !messageBody.message) {
+                    console.error('Invalid message format:', messageBody);
+                }
+                if (messageBody.username !== user.username) {
+                    setChatter(messageBody.username);
+                }
+
+                setChats((prevChats) => {
+                    if (!prevChats.some((chat) => chat.message === messageBody.message && chat.username === messageBody.username)) {
+                        return [...prevChats, messageBody];
+                    }
+                    return prevChats; // Avoid duplicate messages
+                });
+            });
+
+            return () => {
+                subscription.unsubscribe();
+                stompClientRef.current.disconnect();
+                console.log('Disconnected from WebSocket');
+            };
+        });
+    }, [roomId, user]);
 
     // Scroll to the bottom whenever chats update
     useEffect(() => {
@@ -86,12 +87,12 @@ export const Chat = () => {
             console.error('WebSocket is not connected');
         }
 
-        //Save to database
+        // Save to database
         saveMessageToDatabase({
-          roomId: 1,
-          userId: user.userId,
-          text: chat.message,
-      });
+            roomId: roomId,
+            userId: user.userId,
+            text: chat.message,
+        });
     };
 
     // Add message to chats and send to WebSocket
@@ -100,46 +101,44 @@ export const Chat = () => {
         sendChatToSocket(newChat);
     };
 
-    // Render chat messages
-    function ChatsList() {
-      console.log('Rendering ChatsList');
-      return chats.map((chat, index) => {
-          console.log(`Chat message: "${chat.message}", Chat User: "${chat.username}", Logged-in User: "${user.username}"`);
-  
-          const isSender =
-              chat.username.trim().toLowerCase() === user.username.trim().toLowerCase();
-          console.log(`Is sender: ${isSender}`);
-  
-          if (isSender) {
-              return <ChatBoxSender key={index} message={chat.message} avatar={pic} />;
-          } else {
-              return <ChatBoxReciever key={index} message={chat.message} avatar={pic} />;
-          }
-      });
-  }
+    // Calls API to save message
+    const saveMessageToDatabase = async (messageData) => {
+        try {
+            const response = await fetch(`http://localhost:8080/app/chat/${roomId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(messageData),
+                mode: 'no-cors'
+            });
 
-  //Calls Api
-  const saveMessageToDatabase = async (messageData) => {
-    try {
-        const response = await fetch('http://localhost:8080/api/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(messageData),
-        });
+            if (!response.ok) {
+                throw new Error('Failed to save message');
+            }
 
-        if (!response.ok) {
-            throw new Error('Failed to save message');
+            console.log('Message saved:', await response.json());
+        } catch (error) {
+            console.error('Error saving message:', error);
         }
+    };
 
-        console.log('Message saved:', await response.json());
-    } catch (error) {
-        console.error('Error saving message:', error);
-    }
-};
-  
-  
+    // Render chat messages
+    const ChatsList = () => {
+        console.log('Rendering ChatsList');
+        return chats.map((chat, index) => {
+            console.log(`Chat message: "${chat.message}", Chat User: "${chat.username}", Logged-in User: "${user.username}"`);
+
+            const isSender = chat.username.trim().toLowerCase() === user.username.trim().toLowerCase();
+            console.log(`Is sender: ${isSender}`);
+
+            if (isSender) {
+                return <ChatBoxSender key={index} message={chat.message} avatar={pic} />;
+            } else {
+                return <ChatBoxReciever key={index} message={chat.message} avatar={pic} />;
+            }
+        });
+    };
 
     return (
         <div className="container">
