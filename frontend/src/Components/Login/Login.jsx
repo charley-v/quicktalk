@@ -84,35 +84,27 @@ export const Login = () => {
     return (
 
         <div className="container">
-            <div className="logo">
-            <h1>QuickTalk</h1>
-          </div>
-        <div className='login'>
-        
-            <div className='item'>
-            <h2>Welcome Back</h2>
-            <form>
-                <input type="text" value={loginForm.email} onChange={handleChange} placeholder='Email' name='email'/>
-            {
-                <input type='password' value={loginForm.password} onChange={handleChange}placeholder='Password'name='password'/>
-            }
-                <button type='button' onClick={loginHandler}>Log In</button>
-            </form>
-            </div>
-            
-            <div className="seperator"></div>
-            <div className="item">
-            <h2>Create an Account</h2>
-            <form>
-                <input type="text" value={username} onChange={e=>(setUsername(e.target.value))} placeholder='Username' />
-                <input type="text" value={email} onChange={e=>(setEmail(e.target.value))} placeholder='Email' />
-                <input type='password' value={password} onChange={e=>(setPassword(e.target.value))}placeholder='Password'/>
-                <button type='button' onClick={()=> signup()}>Sign Up</button>
-            </form>
-            </div>
-        </div>
-        </div>
-      )
-}
-
-export default Login
+             <div className="logo">
+             <h1>QuickTalk</h1>
+           </div>
+         <div className='login'>
+         
+             <div className='item'>
+             <h2>Log in</h2>
+             <form>
+                 <input type="text" value={loginForm.email} onChange={handleChange} placeholder='Email' name='email'/>
+             {
+                 <input type='password' value={loginForm.password} onChange={handleChange}placeholder='Password'name='password'/>
+             }
+                 <button type='button' onClick={loginHandler}>Log In</button>
+             </form>
+             </div>
+             <a className="signup-link" onClick={()=> signup()}>
+                 Don't have an account? Sign up
+             </a>
+         </div>
+         </div>
+       )
+     }
+     
+     export default Login

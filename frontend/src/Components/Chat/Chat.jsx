@@ -10,7 +10,7 @@ import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 
 export const Chat = () => {
-    const roomId  = 1; // Get roomId from the route
+    const roomId = 1; // Get roomId from the route
     const { user } = useUser();
     const [chats, setChats] = useState([]);
     const [avatar] = useState(localStorage.getItem('avatar'));
@@ -44,19 +44,28 @@ export const Chat = () => {
                 const messageBody = JSON.parse(message.body);
                 console.log('Received WebSocket message:', messageBody);
 
-                // Check if username and message are correctly received
-                if (!messageBody.username || !messageBody.message) {
+                // Adjust for the correct message format (id, text, userId)
+                if (!messageBody.userId || !messageBody.text) {
                     console.error('Invalid message format:', messageBody);
                 }
-                if (messageBody.username !== user.username) {
-                    setChatter(messageBody.username);
+
+                // Check for a new chatter
+                if (messageBody.userId !== user?.userId) {
+                    setChatter(messageBody.userId); // Assuming userId is used for identifying chatter
                 }
 
+                // Map the incoming data to the correct format for ChatsList
+                const mappedMessage = {
+                    username: messageBody.userId, // Assuming you will map userId to username somehow
+                    message: messageBody.text
+                };
+
                 setChats((prevChats) => {
-                    if (!prevChats.some((chat) => chat.message === messageBody.message && chat.username === messageBody.username)) {
-                        return [...prevChats, messageBody];
+                    // Avoid duplicates based on message content and sender
+                    if (!prevChats.some((chat) => chat.message === mappedMessage.message && chat.username === mappedMessage.username)) {
+                        return [...prevChats, mappedMessage];
                     }
-                    return prevChats; // Avoid duplicate messages
+                    return prevChats;
                 });
             });
 
@@ -76,60 +85,34 @@ export const Chat = () => {
     // Send message to WebSocket
     const sendChatToSocket = (chat) => {
         const messageToSend = {
-            username: user.username,
+            roomId: roomId,
+            senderUserId: user?.userId,
             message: chat.message,
         };
         console.log('Sending message:', messageToSend);
 
         if (stompClientRef.current && stompClientRef.current.connected) {
-            stompClientRef.current.send('/app/chat', {}, JSON.stringify(messageToSend));
+            stompClientRef.current.send(`/app/chat/${roomId}`, {}, JSON.stringify(messageToSend));
         } else {
             console.error('WebSocket is not connected');
         }
-
-        // Save to database
-        saveMessageToDatabase({
-            roomId: roomId,
-            userId: user.userId,
-            text: chat.message,
-        });
     };
 
     // Add message to chats and send to WebSocket
     const addMessage = (chat) => {
-        const newChat = { ...chat, username: user.username };
+        const newChat = { ...chat, username: user?.username || '' };
         sendChatToSocket(newChat);
-    };
-
-    // Calls API to save message
-    const saveMessageToDatabase = async (messageData) => {
-        try {
-            const response = await fetch(`http://localhost:8080/app/chat/${roomId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(messageData),
-                mode: 'no-cors'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to save message');
-            }
-
-            console.log('Message saved:', await response.json());
-        } catch (error) {
-            console.error('Error saving message:', error);
-        }
     };
 
     // Render chat messages
     const ChatsList = () => {
         console.log('Rendering ChatsList');
         return chats.map((chat, index) => {
-            console.log(`Chat message: "${chat.message}", Chat User: "${chat.username}", Logged-in User: "${user.username}"`);
+            const chatUsername = chat.username // Fallback to empty string if undefined
+            const loggedInUsername = user.userId // Fallback to empty string if undefined
+            console.log(`Chat message: "${chat.message}", Chat User: "${chatUsername}", Logged-in User: "${loggedInUsername}"`);
 
-            const isSender = chat.username.trim().toLowerCase() === user.username.trim().toLowerCase();
+            const isSender = chatUsername ==loggedInUsername;
             console.log(`Is sender: ${isSender}`);
 
             if (isSender) {
