@@ -35,7 +35,7 @@
   
   /* Background and text colors for receiver messages */
   .receiver .texts {
-    background-color: #ececec; /* Light background for received messages */
+    background-color: blue; /* Light background for received messages */
     color: #333; /* Dark text for contrast */
     padding: 10px; /* Padding around the text */
     border-radius: 10px; /* Rounded corners */
