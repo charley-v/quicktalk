@@ -55,7 +55,7 @@ public class UserController {
 		}
 	}
 	
-	@ApiOperation(value = "Registers a new user", notes = "This API creates a new user with provided details. The request body must include the user's name, email, and password. Returns userId along with 201 status code on success, 404 status code if registration fails and 400 status code if request validation fails along with message.", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ApiOperation(value = "Registers a new user", notes = "This API creates a new user with provided details. The request body must include the ID token received from AWS Cognito. Returns userId along with 200 status code on success, 404 status code if registration fails and 400 status code if request validation fails along with message.", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ApiResponses(value = {
 		    @ApiResponse(code = 200, message = "OK - {\"userId\": \"1\", \"message\": \"Successfully registered johnDoe\"}", response = MessageResponseBean.class),
 		    @ApiResponse(code = 404, message = "Not Found - {\"userId\": null, \"message\": \"Failed to register user johnDoe\"}", response = MessageResponseBean.class),
@@ -78,6 +78,7 @@ public class UserController {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(registerUserResp);
 		}
 	}
+	
 	//@ApiOperation(value = "Logs in a user")
 	@PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<MessageResponseBean> loginUser(@RequestBody LoginRequestBean loginRequest) {

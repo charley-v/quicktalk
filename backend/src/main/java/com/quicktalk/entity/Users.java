@@ -24,9 +24,6 @@ public class Users {
 
     @Column(name = "user_email", nullable = false, unique = true)
     private String email;
-    
-    @Column(name = "user_password", nullable = false)
-    private String password;
 
     @OneToMany(mappedBy = "user")  // Indicates that this User can have multiple RoomMemberships
     private Set<RoomMembership> roomMemberships;
@@ -34,10 +31,9 @@ public class Users {
     public Users() {
     }
     
-	public Users(String username, String email, String password) {
+	public Users(String username, String email) {
 		this.username = username;
 		this.email = email;
-		this.password = password;
 	}
 
 	public Integer getUserId() {
@@ -62,14 +58,6 @@ public class Users {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public Set<RoomMembership> getRoomMemberships() {
