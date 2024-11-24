@@ -1,110 +1,41 @@
-import React, { useState } from 'react'
-import './Login.css'
-import axios from 'axios'
-import {useUser} from '../../Context/UserContext'
-import { useNavigate } from 'react-router-dom'
+import React from 'react';
+import './Login.css';
+import { useNavigate } from 'react-router-dom';
+import { GLOBAL_CONFIG } from '../../Constants/Config';
 
 export const Login = () => {
-    const {login, user} = useUser()
-    const navigate = useNavigate()
+  const navigate = useNavigate();
 
-    const [email, setEmail] = useState("")
-    const [username, setUsername] = useState("")
-    const [password, setPassword] = useState("")
+  // Login function using Cognito Hosted UI
+  const login = () => {
+    const loginUrl = `https://${GLOBAL_CONFIG.cognitoDomain}/login?client_id=${GLOBAL_CONFIG.clientId}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(GLOBAL_CONFIG.redirectUri)}`;
+    window.location.href = loginUrl;
+  };
 
-    const[loginForm, setloginForm] = useState({
-        email: "",
-        password: ""
-    })
-    function loginHandler (event){
-        event.preventDefault()
+  // Signup function using Cognito Hosted UI
+  const signup = () => {
+    // Set signup flag in localStorage
+    localStorage.setItem('signupInProgress', 'true');
+    const signupUrl = `https://${GLOBAL_CONFIG.cognitoDomain}/signup?client_id=${GLOBAL_CONFIG.clientId}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(GLOBAL_CONFIG.redirectUri)}`;
+    window.location.href = signupUrl;
+  };
 
-        const loginData = {
-            email: loginForm.email,
-            password: loginForm.password
-        }
-        axios.post("http://localhost:8080/login", loginData)
-        .then((response) => {
-            console.log(response.data)
-            login(response.data)  
-            navigate('/chat')
-          })
-          .catch((error) => {
-            console.log('Login error:', error); // Log the entire error
-            if (error.response) {
-                if (error.response.status === 401) {
-                    alert("Invalid Email or Password");
-                } else {
-                    alert("Internal Server Error. Please try again later.");
-                }
-            } else {
-                alert("Network error. Please check your connection.");
-            }
-        });
-          setloginForm({
-            email: "",
-            password: ""
-          })
-        }
+  return (
+    <div className="container">
+      <div className="logo">
+        <h1>QuickTalk</h1>
+      </div>
+      <div className="login">
+        <div className="item">
+          <h2>Welcome</h2>
+          <button onClick={login}>Log In</button>
+          <a className="signup-link" href="#" onClick={signup}>
+            Don't have an account? Sign up
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-    const signup =  () => 
-    {
-        axios.post('http://localhost:8080/user', {
-            username: username,
-            email: email, 
-            password: password, 
-        })
-        .then(function(response)
-        {
-            console.log(response)
-            window.location.href = '/' //where to navigate after signing up 
-        })
-        .catch(function(error){
-            console.log(error, 'error')
-            if (error.response) {
-                if (error.response.status === 401) {
-                    alert("Invalid Credentials");
-                } else {
-                    alert("Error: " + error.response.data.message || "An error occurred. Please try again.");
-                }
-            } else {
-                // Handle network or other errors
-                alert("Network error or server is not reachable. Please try again later.");
-            }
-        })
-
-    }
-    function handleChange(event)
-    {
-        const {value, name} = event.target 
-        setloginForm(prevNote=> ({
-            ...prevNote, [name]: value})
-    )}
-
-    return (
-
-        <div className="container">
-             <div className="logo">
-             <h1>QuickTalk</h1>
-           </div>
-         <div className='login'>
-         
-             <div className='item'>
-             <h2>Log in</h2>
-             <form>
-                 <input type="text" value={loginForm.email} onChange={handleChange} placeholder='Email' name='email'/>
-             {
-                 <input type='password' value={loginForm.password} onChange={handleChange}placeholder='Password'name='password'/>
-             }
-                 <button type='button' onClick={loginHandler}>Log In</button>
-             </form>
-             </div>
-             <a className="signup-link" onClick={()=> signup()}>
-                 Don't have an account? Sign up
-             </a>
-         </div>
-         </div>
-       )
-     }
-     
-     export default Login
+export default Login;

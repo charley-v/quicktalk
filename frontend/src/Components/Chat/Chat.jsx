@@ -8,6 +8,7 @@ import { useUser } from '../../Context/UserContext';
 import List from '../../Components/List/List';
 import SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
+import { GLOBAL_CONFIG } from '../../Constants/Config';
 
 export const Chat = () => {
     const roomId = 1; // Get roomId from the route
@@ -34,7 +35,8 @@ export const Chat = () => {
 
     // Setup WebSocket connection
     useEffect(() => {
-        const socket = new SockJS('http://localhost:8080/chat-websocket');
+        const socketUrl = `${GLOBAL_CONFIG.backendUrl}/chat-websocket?token=${user?.accessToken}`;
+        const socket = new SockJS(socketUrl);
         stompClientRef.current = Stomp.over(socket);
 
         stompClientRef.current.connect({}, () => {

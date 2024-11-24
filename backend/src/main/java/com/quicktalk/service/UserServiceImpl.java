@@ -2,15 +2,16 @@ package com.quicktalk.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-
 import org.springframework.stereotype.Service;
 
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 import com.quicktalk.bean.LoginRequestBean;
 import com.quicktalk.bean.MessageResponseBean;
 import com.quicktalk.bean.RegisterUserRequestBean;
@@ -48,8 +49,17 @@ public class UserServiceImpl implements UserService{
 		String errorMessage = validateRegisterUserReq(registerUserRequest);
 		if (errorMessage.equals("")) {
 			try {
-				Users newUser = new Users(registerUserRequest.getUsername(), registerUserRequest.getEmail(),
-						registerUserRequest.getPassword());
+				
+				String idToken = registerUserRequest.getIdToken();
+				JWT jwt = JWTParser.parse(idToken);
+	            Map<String, Object> claims = jwt.getJWTClaimsSet().getClaims();
+	            
+	            USER_SERVICE_LOG.info("UserServiceImpl :: in registerUser() :: claims {}",claims);
+	            
+	            String email = (String) claims.get("email");
+	            String username = (String) claims.get("name");
+    
+				Users newUser = new Users(username, email);
 	
 				Users registerUserResp = userRepo.saveAndFlush(newUser);
 				userResp.setUserId(registerUserResp.getUserId().toString());
@@ -57,7 +67,7 @@ public class UserServiceImpl implements UserService{
 				USER_SERVICE_LOG.info("UserServiceImpl :: User registered successfully :: exit registerUser()");
 			} catch(Exception e) {
 				USER_SERVICE_LOG.info("UserServiceImpl :: Exception in registerUser :: {}",e);
-				userResp.setMessage("Failed to register user "+registerUserRequest.getUsername());
+				userResp.setMessage("Failed to register user");
 				USER_SERVICE_LOG.info("UserServiceImpl :: User registeration failed :: exit registerUser()");
 			}
 		}
@@ -72,32 +82,22 @@ public class UserServiceImpl implements UserService{
 		
 		String error = "";
 		USER_SERVICE_LOG.info("UserServiceImpl :: in validateRegisterUserReq()");
-		if(Utility.isNull(registerUserRequest.getUsername()))
-			error = "Username cannot be empty";
-		else if(Utility.isNull(registerUserRequest.getEmail()))
-			error = "Email cannot be empty";
-		else if(Utility.isNull(registerUserRequest.getPassword()))
-			error ="Password cannot be empty";
-	
+		if(Utility.isNull(registerUserRequest.getIdToken()))
+			error = "ID token cannot be empty";
+
 		USER_SERVICE_LOG.info("UserServiceImpl :: exit validateRegisterUserReq() :: error {}",error);
 		return error;
 	}
+	
 	@Override
     public MessageResponseBean loginUser(LoginRequestBean loginRequest) {
 		String email = loginRequest.getEmail();
-		String password = loginRequest.getPassword();
 	
 		Optional<Users> userOpt = userRepo.findByEmail(email);
 	
 		if (userOpt.isPresent()) {
 			Users user = userOpt.get();
-			
-			// Check the password
-			if (password.equals(user.getPassword())) {
-				return new MessageResponseBean(user.getUserId().toString(), "Successfully logged in", user.getUsername()); // Include username
-			} else {
-				return new MessageResponseBean(null, "Invalid credentials", null); // Invalid password
-			}
+			return new MessageResponseBean(user.getUserId().toString(), "Successfully logged in", user.getUsername()); // Include username
 		} else {
 			return new MessageResponseBean(null, "Invalid credentials", null); // User not found
 		}

@@ -1,9 +1,9 @@
 package com.quicktalk.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class RoomServiceImpl implements RoomService{
 				Integer userId2 = Integer.parseInt(privateRoomRequest.getSecondUserId());
 				
 				//Check whether users are present in DB or not
-				//List<Users> users = userRepo.findAllById(List.of(userId1, userId2));
+//				List<Users> users = userRepo.findAllById(List.of(userId1, userId2));
 				List<Users> users = userRepo.findAllById(new ArrayList<>(Arrays.asList(userId1, userId2)));
 		        if (users.size() != 2) {
 		            throw new IllegalArgumentException("Failed Room Request. One or both users not found");

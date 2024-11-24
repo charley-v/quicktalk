@@ -1,6 +1,7 @@
 import './Chatlist.css';
 import React, { useEffect, useState } from 'react';
 import avatar from '../../../Assets/avatar.png';
+import { GLOBAL_CONFIG } from '../../../Constants/Config';
 
 export const Chatlist = () => {
     const [users, setUsers] = useState([]);
@@ -9,8 +10,15 @@ export const Chatlist = () => {
     //Call users from api
     useEffect(() => {
         const fetchUsers = async () => {
+            const accessToken = localStorage.getItem('access_token'); // Retrieve the access token
             try {
-                const response = await fetch('http://localhost:8080/users');
+                const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`, // Include the access token
+                    },
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch users');
                 }
