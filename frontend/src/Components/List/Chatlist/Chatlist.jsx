@@ -1,49 +1,62 @@
 import './Chatlist.css';
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState } from 'react';
 import avatar from '../../../Assets/avatar.png';
 import { GLOBAL_CONFIG } from '../../../Constants/Config';
+import { UserContext } from '../../../Context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 export const Chatlist = () => {
     const [users, setUsers] = useState([]);
     const [error, setError] = useState(null);
+    const [rooms, setRooms] = useState([]);
+    const {user} = useContext(UserContext);
+    const navigate = useNavigate();
 
     //Call users from api
     useEffect(() => {
-        const fetchUsers = async () => {
-            const accessToken = localStorage.getItem('access_token'); // Retrieve the access token
+        const fetchRooms = async () => {
+            if (!user || !user.userId) {
+                setError("User is not logged in or userId is missing");
+                console.error("User context is invalid:", user);
+                return;
+            }
             try {
-                const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/users`, {
+                console.log("Fetching rooms for user:", user.userId);
+                const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/user/${user.userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`, // Include the access token
+                        'Authorization': `Bearer ${user.accessToken}`, // Include the access token
                     },
                 });
                 if (!response.ok) {
-                    throw new Error('Failed to fetch users');
+                    throw new Error(`Failed to fetch rooms: ${response.statusText}`);
                 }
                 const data = await response.json();
-                setUsers(data);
+                console.log("Rooms fetched successfully:", data);
+                setRooms(data);
             } catch (err) {
+                console.error("Error fetching rooms:", err);
                 setError(err.message);
-                console.error('Error fetching users:', err);
             }
         };
-
-        fetchUsers();
-    }, []);
-
-    return (
+        fetchRooms();
+    }, [user]);
+    
+    const handleRoomClick = (roomId) => {
+        console.log(`Navigating to room: ${roomId}`); // Corrected string interpolation
+        navigate(`/chat/${roomId}`);
+    };
+    return(
         <div className="chatlist">
-            {error ? (
-                <p className="error">{error}</p> // Display error if fetch fails
-            ) : (
-                users.map((user, index) => (
-                    <div key={index} className="item">
-                        <img src={avatar} alt="" />
+            {error ? (<p className="error">{error}</p>) : (rooms.map((room) => (
+                    <div key={room.roomId}
+                        className="item"
+                        onClick={() => handleRoomClick(room.roomId)}>
+                        <img src={avatar} alt="User Avatar" />
                         <div className="texts">
-                            <span>{user.username}</span>
-                            <p>{user.status || 'Available'}</p>
+                            <span>{room.roomName}</span>
+                            <p>{room.lastMessage}</p>
                         </div>
                     </div>
                 ))
@@ -53,3 +66,5 @@ export const Chatlist = () => {
 };
 
 export default Chatlist;
+
+

@@ -11,13 +11,14 @@ import { Stomp } from '@stomp/stompjs';
 import { GLOBAL_CONFIG } from '../../Constants/Config';
 
 export const Chat = () => {
-    const roomId = 1; // Get roomId from the route
+    const {roomId} = useParams(); // Get roomId from the route
     const { user } = useUser();
     const [chats, setChats] = useState([]);
     const [avatar] = useState(localStorage.getItem('avatar'));
     const endRef = useRef(null);
     const stompClientRef = useRef(null);
     const [chatter, setChatter] = useState(null);
+    const [messagesByRoom, setMessagesByRoom] = useState({});
 
     // Scroll to the bottom of the chat
     const scrollToBottom = () => {
@@ -61,7 +62,10 @@ export const Chat = () => {
                     username: messageBody.userId, // Assuming you will map userId to username somehow
                     message: messageBody.text
                 };
-
+                setMessagesByRoom((prevMessages) => ({ //saves messages when clicking away from messages
+                    ...prevMessages,
+                    [roomId]: [...(prevMessages[roomId] || []), mappedMessage],
+                }));
                 setChats((prevChats) => {
                     // Avoid duplicates based on message content and sender
                     if (!prevChats.some((chat) => chat.message === mappedMessage.message && chat.username === mappedMessage.username)) {
@@ -105,7 +109,12 @@ export const Chat = () => {
         const newChat = { ...chat, username: user?.username || '' };
         sendChatToSocket(newChat);
     };
-
+    // Clear chats when roomId changes
+    useEffect(() => {
+        setChats(messagesByRoom[roomId] || []);
+        setChatter(null); 
+    }, [roomId, messagesByRoom]);
+    
     // Render chat messages
     const ChatsList = () => {
         console.log('Rendering ChatsList');

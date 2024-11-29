@@ -1,6 +1,7 @@
 package com.quicktalk.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.quicktalk.bean.MessageResponseBean;
@@ -91,5 +93,17 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginUserResp); // Return unauthorized response
 		}
 	}
+	@GetMapping(value = "/users/id")
+    public ResponseEntity<?> getUserIdByUsername(@RequestParam String username) {
+        USER_CONTROLLER_LOG.info("UserController :: in getUserIdByUsername()");
+        Optional<String> userId = userService.getUserIdByUsername(username);
+        if (userId.isPresent()) {
+            USER_CONTROLLER_LOG.info("UserController :: exit getUserIdByUsername()");
+            return ResponseEntity.ok().body("{\"userId\": \"" + userId.get() + "\"}");
+        } else {
+            USER_CONTROLLER_LOG.info("UserController :: exit getUserIdByUsername() - User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"message\": \"User not found\"}");
+        }
+    }
 }
 

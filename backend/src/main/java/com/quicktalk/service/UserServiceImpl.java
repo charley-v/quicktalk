@@ -102,4 +102,17 @@ public class UserServiceImpl implements UserService{
 			return new MessageResponseBean(null, "Invalid credentials", null); // User not found
 		}
 	}
+	@Override
+    public Optional<String> getUserIdByUsername(String username) {
+        USER_SERVICE_LOG.info("UserServiceImpl :: Fetching userId for username: {}", username);
+        Optional<String> userId = userRepo.findUserIdByUsername(username);
+
+        if (userId.isPresent()) {
+            USER_SERVICE_LOG.info("UserServiceImpl :: Found userId: {}", userId.get());
+        } else {
+            USER_SERVICE_LOG.info("UserServiceImpl :: No userId found for username: {}", username);
+        }
+
+        return userId;
+    }
 }

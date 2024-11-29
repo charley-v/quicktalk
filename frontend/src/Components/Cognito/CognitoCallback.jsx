@@ -22,6 +22,7 @@ const CognitoCallback = () => {
         new URLSearchParams({
           grant_type: 'authorization_code',
           client_id: GLOBAL_CONFIG.clientId,
+          client_secret: GLOBAL_CONFIG.clientSecret,
           redirect_uri: GLOBAL_CONFIG.redirectUri,
           code,
         }),
@@ -70,7 +71,7 @@ const CognitoCallback = () => {
               .then((userIdResponse) => {
                 const userId = userIdResponse.data.userId;
                 login({ username, idToken: id_token, accessToken: accessToken, userId });
-                navigate('/chat'); // Redirect to chat page
+                navigate('/chat/:roomId'); // Redirect to chat page
               })
               .catch(() => {
                 alert('Error fetching user from backend.');
