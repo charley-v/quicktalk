@@ -115,4 +115,20 @@ public class UserServiceImpl implements UserService{
 
         return userId;
     }
+	@Override
+public Optional<UserProjection> getUserById(Integer userId) {
+    USER_SERVICE_LOG.info("Attempting to fetch user by ID: {}", userId);
+    try {
+        Optional<UserProjection> userProjectionOpt = userRepo.findProjectedByUserId(userId);
+        if (userProjectionOpt.isPresent()) {
+            USER_SERVICE_LOG.info("User found: {}", userProjectionOpt.get().getUsername());
+        } else {
+            USER_SERVICE_LOG.info("No user found with ID: {}", userId);
+        }
+        return userProjectionOpt;
+    } catch (Exception e) {
+        USER_SERVICE_LOG.error("Error fetching user by ID: {}", e.getMessage());
+        return Optional.empty();
+    }
+}
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { ChatBoxReciever, ChatBoxSender } from './ChatBox';
 import InputText from './InputText';
 import './Chat.css';
@@ -17,14 +17,14 @@ export const Chat = () => {
     const [avatar] = useState(localStorage.getItem('avatar'));
     const endRef = useRef(null);
     const stompClientRef = useRef(null);
-    const [chatter, setChatter] = useState(null);
     const [messagesByRoom, setMessagesByRoom] = useState({});
+    const { state } = useLocation();
+    const [chatter, setChatter] = useState(state?.chatterUsername || "Unknown User");
 
     // Scroll to the bottom of the chat
     const scrollToBottom = () => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
-
     // Log user information
     useEffect(() => {
         if (!user) {
@@ -51,12 +51,6 @@ export const Chat = () => {
                 if (!messageBody.userId || !messageBody.text) {
                     console.error('Invalid message format:', messageBody);
                 }
-
-                // Check for a new chatter
-                if (messageBody.userId !== user?.userId) {
-                    setChatter(messageBody.userId); // Assuming userId is used for identifying chatter
-                }
-
                 // Map the incoming data to the correct format for ChatsList
                 const mappedMessage = {
                     username: messageBody.userId, // Assuming you will map userId to username somehow
@@ -133,7 +127,19 @@ export const Chat = () => {
             }
         });
     };
-
+    useEffect(() => {
+        // Keep chatter as-is unless the new room has a different chatterUsername
+        if (messagesByRoom[roomId]) {
+            setChats(messagesByRoom[roomId]);
+        } else {
+            setChats([]);
+        }
+    
+        // Retain chatter from state or fallback to previous value
+        if (state?.chatterUsername) {
+            setChatter(state.chatterUsername);
+        }
+    }, [roomId, messagesByRoom, state]);
     return (
         <div className="container">
             <div className="layout">
@@ -143,7 +149,7 @@ export const Chat = () => {
                         <div className="user">
                             <img src={pic} alt="User Avatar" />
                             <div className="texts">
-                                <span>{chatter}</span>
+                                <span className='chatter'>{chatter}</span>
                                 <p>Online</p>
                             </div>
                         </div>

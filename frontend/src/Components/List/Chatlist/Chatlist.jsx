@@ -1,70 +1,117 @@
-import './Chatlist.css';
-import React, {useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import avatar from '../../../Assets/avatar.png';
 import { GLOBAL_CONFIG } from '../../../Constants/Config';
 import { UserContext } from '../../../Context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import './Chatlist.css';
 
-export const Chatlist = () => {
-    const [users, setUsers] = useState([]);
-    const [error, setError] = useState(null);
+const Chatlist = forwardRef((props, ref) => {
     const [rooms, setRooms] = useState([]);
-    const {user} = useContext(UserContext);
+    const { user } = useContext(UserContext);
     const navigate = useNavigate();
 
-    //Call users from api
-    useEffect(() => {
-        const fetchRooms = async () => {
-            if (!user || !user.userId) {
-                setError("User is not logged in or userId is missing");
-                console.error("User context is invalid:", user);
-                return;
+    const fetchRooms = async () => {
+        try {
+            const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/user/${user.userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch rooms: ${response.statusText}`);
             }
-            try {
-                console.log("Fetching rooms for user:", user.userId);
-                const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/user/${user.userId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${user.accessToken}`, // Include the access token
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch rooms: ${response.statusText}`);
-                }
-                const data = await response.json();
-                console.log("Rooms fetched successfully:", data);
-                setRooms(data);
-            } catch (err) {
-                console.error("Error fetching rooms:", err);
-                setError(err.message);
-            }
-        };
-        fetchRooms();
-    }, [user]);
-    
-    const handleRoomClick = (roomId) => {
-        console.log(`Navigating to room: ${roomId}`); // Corrected string interpolation
-        navigate(`/chat/${roomId}`);
+
+            const roomsData = await response.json();
+            const enrichedRooms = await Promise.all(
+                roomsData.map(async (room) => {
+                    let otherUserId = null;
+                    let otherUsername = "Unknown User";
+
+                    if (room.roomName.startsWith("Chat with UserIds")) {
+                        const userIds = room.roomName.match(/\d+/g);
+                        const otherUserIds = userIds.filter((id) => parseInt(id) !== parseInt(user.userId));
+                        otherUserId = otherUserIds.length > 0 ? otherUserIds[0] : null;
+                    }
+
+                    if (otherUserId) {
+                        const userResponse = await fetch(`${GLOBAL_CONFIG.backendUrl}/${otherUserId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${user.accessToken}`,
+                            },
+                        });
+
+                        if (userResponse.ok) {
+                            const userData = await userResponse.json();
+                            otherUsername = userData.username;
+                        }
+                    }
+
+                    return { ...room, otherUsername };
+                })
+            );
+
+            setRooms(enrichedRooms);
+        } catch (err) {
+            console.error("Error fetching rooms:", err);
+        }
     };
-    return(
+
+    useEffect(() => {
+        if (user && user.userId) {
+            fetchRooms();
+        }
+    }, [user]);
+
+    // Expose refreshChatList to parent via ref
+    useImperativeHandle(ref, () => ({
+        refreshChatList: fetchRooms,
+    }));
+
+    const handleRoomClick = (roomId, username) => {
+        navigate(`/chat/${roomId}`, { state: { chatterUsername: username } });
+    };
+
+    const handleDeleteRoom = async (roomId) => {
+        try {
+            const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/${roomId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete room: ${response.statusText}`);
+            }
+
+            setRooms((prevRooms) => prevRooms.filter((room) => room.roomId !== roomId));
+        } catch (err) {
+            console.error("Error deleting room:", err);
+        }
+    };
+
+    return (
         <div className="chatlist">
-            {error ? (<p className="error">{error}</p>) : (rooms.map((room) => (
-                    <div key={room.roomId}
-                        className="item"
-                        onClick={() => handleRoomClick(room.roomId)}>
-                        <img src={avatar} alt="User Avatar" />
-                        <div className="texts">
-                            <span>{room.roomName}</span>
-                            <p>{room.lastMessage}</p>
-                        </div>
+            {rooms.map((room) => (
+                <div key={room.roomId} className="item" onClick={() => handleRoomClick(room.roomId, room.otherUsername)}>
+                    <img src={avatar} alt="User Avatar" />
+                    <div className="texts">
+                        <span>{room.otherUsername}</span>
+                        <p>{room.lastMessage}</p>
                     </div>
-                ))
-            )}
+                    <button className="delete-button" onClick={(e) => { e.stopPropagation(); handleDeleteRoom(room.roomId); }}>
+                        Delete
+                    </button>
+                </div>
+            ))}
         </div>
     );
-};
+});
 
 export default Chatlist;
-
-

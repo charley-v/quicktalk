@@ -6,6 +6,7 @@
     height: 100vh;
     width: 100%;
     background-color: #f4f4f4;
+    margin-top: 10px;
   }
   
   /* Layout for left-side List and right-side chat */
@@ -51,7 +52,7 @@
   .user {
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    margin-top: 20px;
   }
   
   .user img {
@@ -61,7 +62,13 @@
     margin-right: 10px;
   }
   .user .texts p{
-    margin-top: 0px;
+    margin-top: 5px;
+    color: limegreen;
+  }
+  .user .chatter {
+    color: white;
+    font-size: 20px;
+
   }
   
   .texts span {
@@ -71,7 +78,7 @@
   
   .texts p {
     color: #d1d1d1;
-    font-size: 14px;
+    font-size: 12px;
     
   }
   

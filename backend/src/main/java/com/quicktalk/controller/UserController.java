@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,6 +32,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "User Management", tags = {"Users"})
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
+
 public class UserController {
 
 	private static final Logger USER_CONTROLLER_LOG = LoggerFactory.getLogger(UserController.class);
@@ -105,5 +107,22 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"message\": \"User not found\"}");
         }
     }
-}
 
+    @ApiOperation(value = "Fetches a user by ID", notes = "This API returns user details for the given userId, or a 404 status code if no user is found.", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Success", response = UserProjection.class),
+        @ApiResponse(code = 404, message = "Not Found")
+    })
+	@GetMapping("/{userId}")
+public ResponseEntity<?> getUserById(@PathVariable Integer userId) {
+    USER_CONTROLLER_LOG.info("Fetching user with ID: {}", userId);
+    Optional<UserProjection> user = userService.getUserById(userId);
+    if (user.isPresent()) {
+        USER_CONTROLLER_LOG.info("User found: {}", user.get());
+        return ResponseEntity.ok(user.get());
+    } else {
+        USER_CONTROLLER_LOG.info("User not found with ID: {}", userId);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"message\": \"User not found\"}");
+    }
+}
+}

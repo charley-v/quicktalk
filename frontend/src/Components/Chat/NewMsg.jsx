@@ -4,7 +4,7 @@ import './NewMsg.css';
 import { useUser } from '../../Context/UserContext';
 import { GLOBAL_CONFIG } from '../../Constants/Config';
 
-export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
+export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
     const [username, setUsername] = useState('');
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
@@ -13,7 +13,6 @@ export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
 
     useEffect(() => {
         if (isOpen) {
-            // Fetch available users when the modal opens
             const fetchUsers = async () => {
                 try {
                     const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/users`, {
@@ -40,14 +39,13 @@ export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
 
     const handleSearch = (searchTerm) => {
         setUsername(searchTerm);
-        const filtered = users.filter((u) =>
-            u.username.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        const filtered = users.filter((u) => u.username.toLowerCase().includes(searchTerm.toLowerCase()));
         setFilteredUsers(filtered);
     };
 
     const handleCreateChat = async (selectedUsername) => {
         const targetUsername = selectedUsername || username;
+
         if (!targetUsername.trim()) {
             console.error("Username cannot be empty.");
             return;
@@ -64,16 +62,12 @@ export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
                 throw new Error("User not found. Please check the username.");
             }
 
-            const targetUserData = await userIdResponse.json(); // Expecting { userId: "12" }
+            const targetUserData = await userIdResponse.json();
             const secondUserId = targetUserData.userId;
 
-            if (!secondUserId) {
-                throw new Error("Failed to retrieve target user ID.");
-            }
-
             const requestBody = {
-                firstUserId: user.userId, // Logged-in user's ID
-                secondUserId: secondUserId, // Retrieved second user's ID
+                firstUserId: user.userId,
+                secondUserId,
             };
 
             const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/private`, {
@@ -86,21 +80,25 @@ export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Failed to create chat room.");
+                throw new Error("Failed to create chat room.");
             }
 
             const data = await response.json();
             console.log(`Chat created successfully with Room ID: ${data.roomId}`);
+
+            // Refresh the chat list
+            if (typeof refreshChatList === "function") {
+                refreshChatList();
+            }
             onClose(); // Close the modal
-            navigate(`/chat/${data.roomId}`); // Redirect to the new chat room
+            navigate(`/chat/${data.roomId}`);
         } catch (error) {
             console.error("Error creating chat:", error);
         }
     };
 
     if (!isOpen) {
-        return null; // Do not render if modal is not open
+        return null;
     }
 
     return (
@@ -117,11 +115,7 @@ export const NewMsg = ({ isOpen, onClose, onSelectUser }) => {
                 <div className="user-list">
                     {filteredUsers.length > 0 ? (
                         filteredUsers.map((u) => (
-                            <div
-                                key={u.userId}
-                                className="user-item"
-                                onClick={() => handleCreateChat(u.username)}
-                            >
+                            <div key={u.userId} className="user-item" onClick={() => handleCreateChat(u.username)}>
                                 {u.username}
                             </div>
                         ))

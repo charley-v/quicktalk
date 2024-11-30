@@ -14,5 +14,6 @@ public interface UserService {
 	MessageResponseBean registerUser(RegisterUserRequestBean registerUserRequest);
 	MessageResponseBean loginUser(LoginRequestBean loginRequest);
 	Optional<String> getUserIdByUsername(String username);
+	Optional<UserProjection> getUserById(Integer userId);
 
 }
