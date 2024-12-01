@@ -25,6 +25,37 @@ export const Chat = () => {
     const scrollToBottom = () => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+    const fetchPreviousMessages = async () => {
+        try {
+            const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/messages/room/${roomId}`, {
+                headers: {
+                    Authorization: `Bearer ${user?.accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch messages.");
+            }
+
+            const data = await response.json();
+            setMessagesByRoom((prevMessages) => ({
+                ...prevMessages,
+                [roomId]: data.map((msg) => ({
+                    username: msg.userId, // Assuming messages include userId
+                    message: msg.text, // Assuming messages include text
+                })),
+            }));
+            setChats(data.map((msg) => ({
+                username: msg.userId,
+                message: msg.text,
+            })));
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        }
+    };
+    useEffect(() => {
+        fetchPreviousMessages();
+    }, [roomId]);
     // Log user information
     useEffect(() => {
         if (!user) {

@@ -1,5 +1,4 @@
 .chatlist{
-    flex: 1;
     overflow: scroll;
     background-color: rgba(0, 0, 0, 0.482);
 
@@ -33,22 +32,5 @@
         font-weight: 150;
     }
     }
-    }
-
-    .delete-button {
-        background-color: #ff4d4d; /* Red color */
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 5px 10px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        margin-left: auto;
-        transition: background-color 0.3s ease;
-        width: 20%;
-    }
-    
-    .delete-button:hover {
-        background-color: #ff1a1a; /* Darker red on hover */
     }
 }

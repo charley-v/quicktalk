@@ -10,8 +10,10 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList, onCreateChat }) => {
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]); // Track selected users for group chat
     const [isGroupChat, setIsGroupChat] = useState(false); // Toggle for group/private chat
+    const [groupName, setGroupName] = useState('');
     const navigate = useNavigate();
     const { user } = useUser();
+
 
     useEffect(() => {
         if (isOpen) {
@@ -122,13 +124,13 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList, onCreateChat }) => {
             console.error("A group chat requires at least two users.");
             return;
         }
-
+    
         try {
             const requestBody = {
                 userIdList: [user.userId, ...selectedUsers],
-                groupRoomName: `Group Chat`,
+                groupRoomName: groupName.trim() || 'Unnamed Group', // Ensure groupName is used
             };
-
+    
             const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/group`, {
                 method: "POST",
                 headers: {
@@ -137,21 +139,21 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList, onCreateChat }) => {
                 },
                 body: JSON.stringify(requestBody),
             });
-
+    
             if (!response.ok) {
                 throw new Error("Failed to create group chat.");
             }
-
+    
             const data = await response.json();
             console.log(`Group chat created successfully with Room ID: ${data.roomId}`);
-
+    
             const newRoom = {
                 roomId: data.roomId,
-                roomName: `Group Chat`,
+                roomName: requestBody.groupRoomName, // Use the group name from the request
                 lastMessage: "",
-                otherUsername: null,
+                roomType: 'group', // Explicitly set the room type
             };
-
+    
             if (typeof onCreateChat === "function") {
                 onCreateChat(newRoom);
             }
@@ -180,6 +182,15 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList, onCreateChat }) => {
                         Group Chat
                     </label>
                 </div>
+                {isGroupChat && (
+                    <input
+                        type="text"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        placeholder="Enter Group Name"
+                        className="group-name-input"
+                    />
+                )}
                 <input
                     type="text"
                     value={username}
