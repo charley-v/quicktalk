@@ -14,13 +14,13 @@ export const List = () => {
   const handleCloseNewMsg = () =>{
     setNewMsgOpen(false)
   }
-  const handleCreateChat = (username) => {
-    console.log(`Start chat with: ${username}`);
+  const handleCreateChat = (newRoom) => {
+    console.log('New chat created:', newRoom);
     setNewMsgOpen(false);
 
-    // Trigger refresh on Chatlist
+    // Add the new room directly to the Chatlist
     if (chatlistRef.current) {
-        chatlistRef.current.refreshChatList();
+        chatlistRef.current.addRoomToChatList(newRoom);
     }
 };
   return (

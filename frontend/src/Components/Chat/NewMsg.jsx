@@ -4,10 +4,12 @@ import './NewMsg.css';
 import { useUser } from '../../Context/UserContext';
 import { GLOBAL_CONFIG } from '../../Constants/Config';
 
-export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
+export const NewMsg = ({ isOpen, onClose, refreshChatList, onCreateChat }) => {
     const [username, setUsername] = useState('');
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [selectedUsers, setSelectedUsers] = useState([]); // Track selected users for group chat
+    const [isGroupChat, setIsGroupChat] = useState(false); // Toggle for group/private chat
     const navigate = useNavigate();
     const { user } = useUser();
 
@@ -43,16 +45,28 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
         setFilteredUsers(filtered);
     };
 
-    const handleCreateChat = async (selectedUsername) => {
-        const targetUsername = selectedUsername || username;
+    const toggleUserSelection = (userId) => {
+        setSelectedUsers((prev) =>
+            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+        );
+    };
 
-        if (!targetUsername.trim()) {
+    const handleCreateChat = async () => {
+        if (isGroupChat) {
+            await handleCreateGroupChat();
+        } else {
+            await handleCreatePrivateChat();
+        }
+    };
+
+    const handleCreatePrivateChat = async () => {
+        if (!username.trim()) {
             console.error("Username cannot be empty.");
             return;
         }
 
         try {
-            const userIdResponse = await fetch(`${GLOBAL_CONFIG.backendUrl}/users/id?username=${targetUsername}`, {
+            const userIdResponse = await fetch(`${GLOBAL_CONFIG.backendUrl}/users/id?username=${username}`, {
                 headers: {
                     Authorization: `Bearer ${user?.accessToken}`,
                 },
@@ -80,20 +94,71 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to create chat room.");
+                throw new Error("Failed to create private chat.");
             }
 
             const data = await response.json();
-            console.log(`Chat created successfully with Room ID: ${data.roomId}`);
+            console.log(`Private chat created successfully with Room ID: ${data.roomId}`);
 
-            // Refresh the chat list
-            if (typeof refreshChatList === "function") {
-                refreshChatList();
+            const newRoom = {
+                roomId: data.roomId,
+                roomName: `Chat with UserIds ${user.userId} ${secondUserId}`,
+                lastMessage: "",
+                otherUsername: username,
+            };
+
+            if (typeof onCreateChat === "function") {
+                onCreateChat(newRoom);
             }
-            onClose(); // Close the modal
+            onClose();
             navigate(`/chat/${data.roomId}`);
         } catch (error) {
-            console.error("Error creating chat:", error);
+            console.error("Error creating private chat:", error);
+        }
+    };
+
+    const handleCreateGroupChat = async () => {
+        if (selectedUsers.length < 2) {
+            console.error("A group chat requires at least two users.");
+            return;
+        }
+
+        try {
+            const requestBody = {
+                userIdList: [user.userId, ...selectedUsers],
+                groupRoomName: `Group Chat`,
+            };
+
+            const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/group`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user?.accessToken}`,
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to create group chat.");
+            }
+
+            const data = await response.json();
+            console.log(`Group chat created successfully with Room ID: ${data.roomId}`);
+
+            const newRoom = {
+                roomId: data.roomId,
+                roomName: `Group Chat`,
+                lastMessage: "",
+                otherUsername: null,
+            };
+
+            if (typeof onCreateChat === "function") {
+                onCreateChat(newRoom);
+            }
+            onClose();
+            navigate(`/chat/${data.roomId}`);
+        } catch (error) {
+            console.error("Error creating group chat:", error);
         }
     };
 
@@ -105,17 +170,36 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
         <div className="modal-overlay">
             <div className="modal-content">
                 <h2>Start a New Message</h2>
+                <div className="toggle-container">
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={isGroupChat}
+                            onChange={(e) => setIsGroupChat(e.target.checked)}
+                        />
+                        Group Chat
+                    </label>
+                </div>
                 <input
                     type="text"
                     value={username}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder="Search by Username"
                     className="username-input"
+                    disabled={isGroupChat} // Disable input in group chat mode
                 />
                 <div className="user-list">
                     {filteredUsers.length > 0 ? (
                         filteredUsers.map((u) => (
-                            <div key={u.userId} className="user-item" onClick={() => handleCreateChat(u.username)}>
+                            <div
+                                key={u.userId}
+                                className={`user-item ${
+                                    isGroupChat && selectedUsers.includes(u.userId) ? "selected" : ""
+                                }`}
+                                onClick={() =>
+                                    isGroupChat ? toggleUserSelection(u.userId) : setUsername(u.username)
+                                }
+                            >
                                 {u.username}
                             </div>
                         ))
@@ -124,8 +208,12 @@ export const NewMsg = ({ isOpen, onClose, refreshChatList }) => {
                     )}
                 </div>
                 <div className="modal-buttons">
-                    <button onClick={() => handleCreateChat()} className="create-button">Create</button>
-                    <button onClick={onClose} className="close-button">Cancel</button>
+                    <button onClick={handleCreateChat} className="create-button">
+                        Create
+                    </button>
+                    <button onClick={onClose} className="close-button">
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>

@@ -10,6 +10,7 @@ const Chatlist = forwardRef((props, ref) => {
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
 
+   
     const fetchRooms = async () => {
         try {
             const response = await fetch(`${GLOBAL_CONFIG.backendUrl}/rooms/user/${user.userId}`, {
@@ -60,6 +61,10 @@ const Chatlist = forwardRef((props, ref) => {
             console.error("Error fetching rooms:", err);
         }
     };
+    
+    const addRoom = (newRoom) => {
+        setRooms((prevRooms) => [...prevRooms, newRoom]);
+    };
 
     useEffect(() => {
         if (user && user.userId) {
@@ -70,6 +75,7 @@ const Chatlist = forwardRef((props, ref) => {
     // Expose refreshChatList to parent via ref
     useImperativeHandle(ref, () => ({
         refreshChatList: fetchRooms,
+        addRoomToChatList: addRoom, // Expose addRoom method
     }));
 
     const handleRoomClick = (roomId, username) => {
