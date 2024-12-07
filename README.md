@@ -5,7 +5,7 @@ This is a real-time chat application built using WebSocket technology. The appli
 ## Features
 
 - **Real-Time Communication**: Supports private and group chat using WebSockets.
-- **User Authentication**: Secure login and user management.
+- **User Authentication**: Secure login and user management with Amazon Cognito.
 - **Persistent Messaging**: Messages are saved in the MySQL database for future reference.
 - **Interactive Frontend**: Responsive UI built with React.
 - **API Documentation**: Comprehensive API documentation available via Swagger UI.
@@ -41,29 +41,34 @@ This is a real-time chat application built using WebSocket technology. The appli
       cd database
     - Run the schema provided in `schema.sql` to set up the database and tables
 
-3. **Configure the Backend**:
+3. **Setup Amazon Cogntio User pool**
+    - Create an AWS account and log in to the AWS Management Console and create a new User Pool
+    - We will be using Cognito Hosted UI. Choose an application type ‘Single-page application (SPA) since ours is a React app
+    - Configure attributes such as email for sign-in and email and name as required ones for sign-up. Configure password policies
+    - Edit authentication flows for your app client and select ‘Sign in with username and password’
+    - Define callback URLs for the React application (e.g., http://localhost:3000/callback for local testing)
+
+4. **Configure the Backend**:
     - Navigate to the backend directory:
       ```bash
       cd backend
       ```
-    - Create an `application.properties` file with your MySQL credentials in `src/main/resources/application.properties`:
-      ```properties
-      spring.datasource.url=jdbc:mysql://localhost:3306/quicktalkdb
-      spring.datasource.username=your-username
-      spring.datasource.password=your-password
-      ```
+    - Configure `application.properties` file in `src/main/resources/application.properties` with MySQL credentials, frontend url, SSL certificate path, password & Cognito user pool JWKS keys 
 
-4. **Run the Spring Boot Backend**:
+5. **Run the Spring Boot Backend**:
     ```bash
     mvn clean install
     mvn spring-boot:run
     ```
 
-5. **Start the React Frontend**:
+6. **Configure the Frontend**:
     - Navigate to the frontend directory:
       ```bash
       cd ../frontend
       ```
+    - Configure `Config.js` file in `src/Constants/Config.js` with Cognito domain, client Id and backend url
+    
+7. **Run the React app**:
     - Install dependencies and start the React app:
       ```bash
       npm install
